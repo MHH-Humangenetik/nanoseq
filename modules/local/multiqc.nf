@@ -9,6 +9,7 @@ process MULTIQC {
     input:
     path ch_multiqc_config
     path ch_multiqc_custom_config
+    path ch_pycoqc_multiqc
     path ch_fastqc_multiqc
     path ch_sortbam_stats_multiqc
     path ch_featurecounts_gene_multiqc
