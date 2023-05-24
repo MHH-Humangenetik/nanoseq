@@ -2,7 +2,11 @@ process DEEPVARIANT {
     tag "$meta.id"
     label 'process_medium'
 
-    container "google/deepvariant:1.4.0"
+    if (params.deepvariant_gpu) {
+        container 'google/deepvariant:1.4.0-gpu'
+    } else {
+        container 'google/deepvariant:1.4.0'
+    }
 
     // Exit if running this module with -profile conda / -profile mamba
     if (workflow.profile.tokenize(',').intersect(['conda', 'mamba']).size() >= 1) {
