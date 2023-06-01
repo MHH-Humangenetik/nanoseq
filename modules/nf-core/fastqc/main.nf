@@ -2,10 +2,10 @@ process FASTQC {
     tag "$meta.id"
     label 'process_medium'
 
-    conda "bioconda::fastqc=0.11.9"
+    conda "bioconda::fastqc=0.12.1"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/fastqc:0.11.9--0' :
-        'quay.io/biocontainers/fastqc:0.11.9--0' }"
+        'https://depot.galaxyproject.org/singularity/fastqc:0.12.1--hdfd78af_0' :
+        'quay.io/biocontainers/fastqc:0.12.1--hdfd78af_0' }"
 
     input:
     tuple val(meta), path(reads)
@@ -25,11 +25,13 @@ process FASTQC {
     def old_new_pairs = reads instanceof Path || reads.size() == 1 ? [[ reads, "${prefix}.${reads.extension}" ]] : reads.withIndex().collect { entry, index -> [ entry, "${prefix}_${index + 1}.${entry.extension}" ] }
     def rename_to = old_new_pairs*.join(' ').join(' ')
     def renamed_files = old_new_pairs.collect{ old_name, new_name -> new_name }.join(' ')
+    // use as much memory as provided, but not more than 10GB per thread (as per FastQC documentation)
+    def memory_per_thread = Math.min(10000, task.memory.toMega() / task.cpus)
     """
     printf "%s %s\\n" $rename_to | while read old_name new_name; do
         [ -f "\${new_name}" ] || ln -s \$old_name \$new_name
     done
-    fastqc $args --threads $task.cpus $renamed_files
+    fastqc $args --threads $task.cpus --memory $memory_per_thread $renamed_files
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
