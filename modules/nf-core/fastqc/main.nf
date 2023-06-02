@@ -26,7 +26,7 @@ process FASTQC {
     def rename_to = old_new_pairs*.join(' ').join(' ')
     def renamed_files = old_new_pairs.collect{ old_name, new_name -> new_name }.join(' ')
     // use as much memory as provided, but not more than 10GB per thread (as per FastQC documentation)
-    def memory_per_thread = Math.min(10000, task.memory.toMega() / task.cpus)
+    def memory_per_thread = new BigDecimal('10000').min(task.memory.toMega() / task.cpus as BigDecimal)
     """
     printf "%s %s\\n" $rename_to | while read old_name new_name; do
         [ -f "\${new_name}" ] || ln -s \$old_name \$new_name
